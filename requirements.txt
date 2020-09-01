@@ -1,0 +1,7 @@
+numpy
+opencv-python
+opencv-contrib-python
+imutils
+flask
+pafy
+youtube_dl
