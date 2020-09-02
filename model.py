@@ -3,7 +3,8 @@ import sys
 
 
 class Model:
-    def __init__(self, model_path, config_path, confidence_th=0.2):
+    def __init__(self, model_path='model_data/mobilenet_iter_73000.caffemodel',
+                 config_path='model_data/deploy.prototxt', confidence_th=0.2):
         self.net = None
         self.model_path = model_path
         self.config_path = config_path
