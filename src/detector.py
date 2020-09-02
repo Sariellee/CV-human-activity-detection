@@ -7,6 +7,9 @@ hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
 
 def detect_human_bodies(image):
+    """
+    DEPRECATED
+    """
     global hog
     # detect people in the image
     (rects, weights) = hog.detectMultiScale(image, winStride=(4, 4),
