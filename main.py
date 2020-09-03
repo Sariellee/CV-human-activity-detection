@@ -7,6 +7,7 @@ import pafy as pafy
 from flask import Flask, Response
 from flask import render_template
 
+from model import Model
 from src.detector import detect_human_bodies
 
 youtube_url = os.environ.get("YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g")
@@ -21,6 +22,7 @@ app = Flask(__name__)
 outputFrame = None
 lock = threading.Lock()
 
+model = Model()
 
 def detect_position():
     global video_capture, outputFrame, lock
@@ -33,7 +35,7 @@ def detect_position():
                 continue
             frame = imutils.resize(frame, width=400)
 
-            detect_human_bodies(frame)
+            model.draw_bboxes(frame)
 
             # Display the resulting frame (optional)
             # cv2.imshow('Video', frame)
