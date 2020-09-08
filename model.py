@@ -1,5 +1,4 @@
 import cv2 as cv
-import sys
 
 
 class Model:
@@ -67,7 +66,7 @@ class Model:
             cv.rectangle(frame, (xLeftBottom, yLeftBottom), (xRightTop, yRightTop),
                          (0, 255, 0))
 
-        return frame
+        return frame, len(bboxes)
 
 # model_path = "/Users/Pavel/programs/EORA/test-task-EORA/model_data/mobilenet_iter_73000.caffemodel"
 # config_path = "/Users/Pavel/programs/EORA/test-task-EORA/model_data/deploy.prototxt"
@@ -78,4 +77,4 @@ class Model:
 #
 # cv.imshow("d", detections)
 # cv.waitKey(0)
-#https://www.ebenezertechs.com/mobilenet-ssd-using-opencv-3-4-1-deep-learning-module-python/
+# https://www.ebenezertechs.com/mobilenet-ssd-using-opencv-3-4-1-deep-learning-module-python/
