@@ -1,3 +1,3 @@
-docker build -t eora-test .
+docker build -t cv-test .
 # specify STREAM_URL or YOUTUBE_URL if you want
-docker run -e STREAM_URL= -p 80:80 eora-test
+docker run -e STREAM_URL= -p 80:80 cv-test

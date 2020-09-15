@@ -1,7 +1,8 @@
 numpy
-opencv-python
-opencv-contrib-python
+opencv-python==4.4.0.42
+opencv-contrib-python==4.4.0.42
 imutils
 flask
 pafy
 youtube_dl
+requests
