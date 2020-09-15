@@ -7,7 +7,9 @@ import pafy as pafy
 from flask import Flask, Response
 from flask import render_template
 
-from model import Model
+from src.detector import detect_human_bodies
+
+from model import MobileNet, YOLOv4
 from src.telegram import TelegramNotification
 
 youtube_url = os.environ.get("YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g")
@@ -22,7 +24,10 @@ app = Flask(__name__)
 outputFrame = None
 lock = threading.Lock()
 
-model = Model()
+if os.environ.get("MODEL") == 'MobileNet':
+    model = MobileNet()
+else:
+    model = YOLOv4()
 
 tn = TelegramNotification()
 
