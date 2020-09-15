@@ -8,7 +8,7 @@ from flask import Flask, Response
 from flask import render_template
 
 from model import Model
-from src.detector import detect_human_bodies
+from src.telegram import TelegramNotification
 
 youtube_url = os.environ.get("YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g")
 video = pafy.new(youtube_url)
@@ -24,6 +24,9 @@ lock = threading.Lock()
 
 model = Model()
 
+tn = TelegramNotification()
+
+
 def detect_position():
     global video_capture, outputFrame, lock
     # watch ip camera stream
@@ -35,7 +38,10 @@ def detect_position():
                 continue
             frame = imutils.resize(frame, width=400)
 
-            model.draw_bboxes(frame)
+            f, c = model.draw_bboxes(frame)
+
+            if c:
+                tn.update(f'human activity detected (number of people: {c})')
 
             # Display the resulting frame (optional)
             # cv2.imshow('Video', frame)
@@ -74,8 +80,8 @@ def generate():
                 continue
         # yield the output frame in the byte format
         yield (
-            b"--frame\r\n"
-            b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n"
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n"
         )
 
 
