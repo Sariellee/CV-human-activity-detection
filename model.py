@@ -148,7 +148,7 @@ class MobileNet(Model):
                 yRightTop = int(height * yRightTop)
                 # Draw location of object
                 bboxes.append((xLeftBottom, yLeftBottom, xRightTop, yRightTop))
-        print(bboxes)
+
         return bboxes, score
 
     def draw_bboxes(self, frame):
