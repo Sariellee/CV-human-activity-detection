@@ -1,6 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from typing import List, Tuple, Dict
 
 import numpy as np
 from cv2 import cv2
@@ -8,12 +9,12 @@ from pycocotools import mask as COCOmask
 
 from model import Model
 
-DATASET_PATH = './validation_data/'
+DATASET_PATH = './validation/validation_data/'
 FRAMES_PATH = DATASET_PATH + 'PICTURES/'
 LABELS_PATH = DATASET_PATH + 'ANNOTATION/'
 
 
-def read_labels(path: str) -> 'np.array':
+def read_labels(path: str) -> Dict[str, List[List[int]]]:
     """Reads labels from labels folder and outputs them in a numpy array"""
     labels = defaultdict(list)
     for label_path in os.listdir(path):
@@ -28,7 +29,7 @@ def read_labels(path: str) -> 'np.array':
     return labels
 
 
-def read_frames(path: str) -> 'np.array':
+def read_frames(path: str) -> Dict[str, 'np.array']:
     """Reads frames from data folder and returns them in a numpy array"""
     frames = {}
     for img_path in os.listdir(path):
@@ -37,7 +38,7 @@ def read_frames(path: str) -> 'np.array':
     return frames
 
 
-def IoU(boxA, boxB):
+def IoU(boxA: List[int], boxB: List[int]) -> float:
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
     xB = min(boxA[2], boxB[2])
@@ -53,7 +54,7 @@ def IoU(boxA, boxB):
     return iou
 
 
-def xyxy_to_xywh(xyxy):
+def xyxy_to_xywh(xyxy: List[int]) -> Tuple[int, int, int, int]:
     """Convert [x1 y1 x2 y2] box format to [x1 y1 w h] format."""
     # Single box given as a list of coordinates
     assert len(xyxy) == 4
@@ -63,21 +64,25 @@ def xyxy_to_xywh(xyxy):
     return x1, y1, w, h
 
 
-def validate(frames, labels):
+def validate(frames: Dict[str, 'np.array'], labels: Dict[str, List[List[int]]]):
     sums = []
     for frame, label in [(frames[key], labels[key]) for key in frames.keys()]:
         bboxes, _ = Model().predict(frame)
-        # bboxes = [[380, 40, 480, 400]]
         bboxes = [xyxy_to_xywh(bbox) for bbox in bboxes]
         label = [xyxy_to_xywh(lbl) for lbl in label]
         iou = COCOmask.iou(np.array(bboxes), np.array(label), [int(False)] * np.array(label).shape[0])
 
-        sums.append(iou.sum())
+        if (label and not bboxes) or (not label and bboxes):
+            sums.append(0)
+        elif not label and not bboxes:
+            sums.append(1)
+        else:
+            sums.append(np.average(iou))
 
     print(f"Average accuracy: {np.average(sums)}")
 
 
-def visual(frames, labels, index=0):
+def visual(frames: Dict[str, 'np.array'], labels: Dict[str, List[List[int]]], index: int = 0):
     """
     True labels are green.
     Predicted labels are red.
@@ -85,7 +90,6 @@ def visual(frames, labels, index=0):
 
     for frame, label in [(frames[key], labels[key]) for key in frames.keys()][index:index+1]:
         bboxes, _ = Model().predict(frame)
-        # bboxes = [[380, 40, 480, 400]]
         for bbox in bboxes:
             xLeftBottom, yLeftBottom, xRightTop, yRightTop = bbox
             cv2.rectangle(
@@ -111,4 +115,4 @@ if __name__ == '__main__':
     frames = read_frames(FRAMES_PATH)
     labels = read_labels(LABELS_PATH)
     validate(frames, labels)
-    # visual(frames, labels)
+    # visual(frames, labels, index=2)
