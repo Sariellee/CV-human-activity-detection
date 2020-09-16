@@ -1,4 +1,5 @@
 import os
+import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from typing import List, Tuple, Dict
@@ -7,7 +8,7 @@ import numpy as np
 from cv2 import cv2
 from pycocotools import mask as COCOmask
 
-from model import Model
+from model import Model, YOLOv4, MobileNet, OpenCVDefaultHOGModel, YOLOv4Tiny
 
 DATASET_PATH = './validation/validation_data/'
 FRAMES_PATH = DATASET_PATH + 'PICTURES/'
@@ -64,55 +65,74 @@ def xyxy_to_xywh(xyxy: List[int]) -> Tuple[int, int, int, int]:
     return x1, y1, w, h
 
 
-def validate(frames: Dict[str, 'np.array'], labels: Dict[str, List[List[int]]]):
+def validate(model, frames: Dict[str, 'np.array'], labels: Dict[str, List[List[int]]]):
     sums = []
-    for frame, label in [(frames[key], labels[key]) for key in frames.keys()]:
-        bboxes, _ = Model().predict(frame)
-        bboxes = [xyxy_to_xywh(bbox) for bbox in bboxes]
-        label = [xyxy_to_xywh(lbl) for lbl in label]
+    model = model()
+    frame_and_label = [(frames[key], labels[key]) for key in frames.keys()]
+    for frame, label_bboxes in frame_and_label:
+        predicted_bboxes, _ = model.predict(frame)
+        bboxes = [xyxy_to_xywh(bbox) for bbox in predicted_bboxes]
+        label = [xyxy_to_xywh(lbl) for lbl in label_bboxes]
         iou = COCOmask.iou(np.array(bboxes), np.array(label), [int(False)] * np.array(label).shape[0])
 
         if (label and not bboxes) or (not label and bboxes):
-            sums.append(0)
+            score = 0
         elif not label and not bboxes:
-            sums.append(1)
+            score = 1
         else:
-            sums.append(np.average(iou))
+            score = np.average([max(scores) for scores in iou])
+
+            print(np.average([max(scores) for scores in iou]) if len(iou) else None)
+        sums.append(score)
+
+        # visual_boxes(frame, label_bboxes, predicted_bboxes)
 
     print(f"Average accuracy: {np.average(sums)}")
 
 
-def visual(frames: Dict[str, 'np.array'], labels: Dict[str, List[List[int]]], index: int = 0):
+def measure_FPS(model, frames, labels):
+    FPSes = []
+    model = model()
+    frame_and_label = [(frames[key], labels[key]) for key in frames.keys()]
+    for frame, label_bboxes in frame_and_label:
+        start = time.time()
+        predicted_bboxes, _ = model.predict(frame)
+        end = time.time()
+        fps = 1/(end-start)
+        FPSes.append(fps)
+        print(f'FRS on frame: {fps}')
+
+    print(np.average(FPSes))
+
+
+def visual_boxes(frame, truth, predicted):
     """
     True labels are green.
     Predicted labels are red.
     """
+    for bbox in predicted:
+        xLeftBottom, yLeftBottom, xRightTop, yRightTop = bbox
+        cv2.rectangle(
+            frame,
+            (xLeftBottom, yLeftBottom),
+            (xRightTop, yRightTop),
+            (0, 0, 255)
+        )
 
-    for frame, label in [(frames[key], labels[key]) for key in frames.keys()][index:index+1]:
-        bboxes, _ = Model().predict(frame)
-        for bbox in bboxes:
-            xLeftBottom, yLeftBottom, xRightTop, yRightTop = bbox
-            cv2.rectangle(
-                frame,
-                (xLeftBottom, yLeftBottom),
-                (xRightTop, yRightTop),
-                (0, 0, 255)
-            )
+    for bbox in truth:
+        xLeftBottom, yLeftBottom, xRightTop, yRightTop = bbox
+        cv2.rectangle(
+            frame,
+            (xLeftBottom, yLeftBottom),
+            (xRightTop, yRightTop),
+            (0, 255, 0)
+        )
 
-        for bbox in label:
-            xLeftBottom, yLeftBottom, xRightTop, yRightTop = bbox
-            cv2.rectangle(
-                frame,
-                (xLeftBottom, yLeftBottom),
-                (xRightTop, yRightTop),
-                (0, 255, 0)
-            )
-
-        cv2.imwrite('test.png', frame)
+    cv2.imwrite('test.png', frame)
 
 
 if __name__ == '__main__':
     frames = read_frames(FRAMES_PATH)
     labels = read_labels(LABELS_PATH)
-    validate(frames, labels)
-    # visual(frames, labels, index=2)
+    validate(MobileNet, frames, labels)
+    # measure_FPS(MobileNet, frames, labels)

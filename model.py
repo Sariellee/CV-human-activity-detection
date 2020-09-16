@@ -1,10 +1,11 @@
 import cv2 as cv
 import numpy as np
+from imutils.object_detection import non_max_suppression
 
 
 class Model:
     def predict(self, frame):
-        return
+        raise NotImplementedError
 
     def draw_bboxes(self, frame):
         bboxes, score = self.predict(frame)
@@ -166,6 +167,26 @@ class MobileNet(Model):
                          (0, 255, 0))
 
         return frame, len(bboxes)
+
+
+class OpenCVDefaultHOGModel(Model):
+    def __init__(self):
+        super(OpenCVDefaultHOGModel, self).__init__()
+        self.hog = cv.HOGDescriptor()
+        self.hog.setSVMDetector(cv.HOGDescriptor_getDefaultPeopleDetector())
+
+    def predict(self, frame):
+        # detect people in the image
+        (bboxes, weights) = self.hog.detectMultiScale(frame, winStride=(4, 4),
+                                                padding=(8, 8), scale=1.05)
+        # apply non-maxima suppression to the bounding boxes using a
+        # fairly large overlap threshold to try to maintain overlapping
+        # boxes that are still people
+        bboxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in bboxes])
+        bboxes = non_max_suppression(bboxes, probs=None, overlapThresh=0.65)
+
+        return bboxes, weights
+
 
 # import matplotlib.pyplot as plt
 # im = cv.imread('/Users/Pavel/programs/EORA/test-task-EORA/model_data/img.png')
