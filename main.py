@@ -7,12 +7,12 @@ import pafy as pafy
 from flask import Flask, Response
 from flask import render_template
 
-from src.detector import detect_human_bodies
-
-from model import MobileNet, YOLOv4, YOLOv4Tiny
+from src.model import MobileNet, YOLOv4, YOLOv4Tiny
 from src.telegram import TelegramNotification
 
-youtube_url = os.environ.get("YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g")
+youtube_url = os.environ.get(
+    "YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g"
+)
 video = pafy.new(youtube_url)
 best = video.getbest()
 
@@ -24,10 +24,12 @@ app = Flask(__name__)
 outputFrame = None
 lock = threading.Lock()
 
-if os.environ.get("MODEL") == 'MobileNet':
+if os.environ.get("MODEL") == "MobileNet":
     model = MobileNet()
-elif os.environ.get("MODEL") == 'YOLOv4':
+elif os.environ.get("MODEL") == "YOLOv4":
     model = YOLOv4()
+elif os.environ.get("MODEL") == "YOLOv4Tiny":
+    model = YOLOv4Tiny()
 else:
     model = YOLOv4Tiny()
 
@@ -47,10 +49,10 @@ def detect_position():
                 continue
             frame = imutils.resize(frame, width=400)
 
-            f, c = model.draw_bboxes(frame)
+            f, c = model.draw_bboxes_with_time(frame)
 
             if c:
-                tn.update(f'human activity detected (number of people: {c})')
+                tn.update(f"human activity detected (number of people: {c})")
 
             # Display the resulting frame (optional)
             # cv2.imshow('Video', frame)
@@ -89,8 +91,8 @@ def generate():
                 continue
         # yield the output frame in the byte format
         yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n"
+            b"--frame\r\n"
+            b"Content-Type: image/jpeg\r\n\r\n" + bytearray(encodedImage) + b"\r\n"
         )
 
 

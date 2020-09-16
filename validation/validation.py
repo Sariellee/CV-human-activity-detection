@@ -8,7 +8,7 @@ import numpy as np
 from cv2 import cv2
 from pycocotools import mask as COCOmask
 
-from model import Model, YOLOv4, MobileNet, OpenCVDefaultHOGModel, YOLOv4Tiny
+from src.model import MobileNet
 
 DATASET_PATH = './validation/validation_data/'
 FRAMES_PATH = DATASET_PATH + 'PICTURES/'
