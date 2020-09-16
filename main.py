@@ -9,7 +9,7 @@ from flask import render_template
 
 from src.detector import detect_human_bodies
 
-from model import MobileNet, YOLOv4
+from model import MobileNet, YOLOv4, YOLOv4Tiny
 from src.telegram import TelegramNotification
 
 youtube_url = os.environ.get("YOUTUBE_URL", "https://www.youtube.com/watch?v=VweY4kbkk5g")
@@ -26,8 +26,12 @@ lock = threading.Lock()
 
 if os.environ.get("MODEL") == 'MobileNet':
     model = MobileNet()
-else:
+elif os.environ.get("MODEL") == 'YOLOv4':
     model = YOLOv4()
+else:
+    model = YOLOv4Tiny()
+
+print("model in use:", model.__class__.__name__)
 
 tn = TelegramNotification()
 

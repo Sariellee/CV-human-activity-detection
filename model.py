@@ -94,6 +94,12 @@ class YOLOv4(Model):
         return coords, confidence_res
 
 
+class YOLOv4Tiny(YOLOv4):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, model_path='model_data/yolov4-tiny.weights',
+                         config_path='model_data/yolov4-tiny.cfg', **kwargs)
+
+
 class MobileNet(Model):
     def __init__(self, model_path='model_data/mobilenet_iter_73000.caffemodel',
                  config_path='model_data/deploy.prototxt', confidence_th=0.2):
