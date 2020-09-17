@@ -1,3 +1,5 @@
+import time
+
 import cv2 as cv
 import numpy as np
 from imutils.object_detection import non_max_suppression
@@ -6,6 +8,25 @@ from imutils.object_detection import non_max_suppression
 class Model:
     def predict(self, frame):
         raise NotImplementedError
+
+    def draw_bboxes_with_time(self, frame):
+        start_time = time.time()
+        frame, count = self.draw_bboxes(frame)
+        end_time = time.time()
+        fps = 1/(end_time-start_time)
+        cv.putText(
+            frame,
+            f'FPS: {int(fps)}',
+            (int(frame.shape[0]*0.07), int(frame.shape[1]*0.07)),
+            cv.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (0, 0, 255),
+            2,
+            cv.LINE_AA,
+            False
+        )
+
+        return frame, count
 
     def draw_bboxes(self, frame):
         bboxes, score = self.predict(frame)

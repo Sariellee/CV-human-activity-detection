@@ -8,7 +8,7 @@ import numpy as np
 from cv2 import cv2
 from pycocotools import mask as COCOmask
 
-from model import Model, YOLOv4, MobileNet, OpenCVDefaultHOGModel, YOLOv4Tiny
+from src.model import MobileNet, OpenCVDefaultHOGModel, YOLOv4, YOLOv4Tiny
 
 DATASET_PATH = './validation/validation_data/'
 FRAMES_PATH = DATASET_PATH + 'PICTURES/'
@@ -82,7 +82,6 @@ def validate(model, frames: Dict[str, 'np.array'], labels: Dict[str, List[List[i
         else:
             score = np.average([max(scores) for scores in iou])
 
-            print(np.average([max(scores) for scores in iou]) if len(iou) else None)
         sums.append(score)
 
         # visual_boxes(frame, label_bboxes, predicted_bboxes)
@@ -100,9 +99,8 @@ def measure_FPS(model, frames, labels):
         end = time.time()
         fps = 1/(end-start)
         FPSes.append(fps)
-        print(f'FRS on frame: {fps}')
 
-    print(np.average(FPSes))
+    print("Average FPS: ", np.average(FPSes))
 
 
 def visual_boxes(frame, truth, predicted):
@@ -134,5 +132,8 @@ def visual_boxes(frame, truth, predicted):
 if __name__ == '__main__':
     frames = read_frames(FRAMES_PATH)
     labels = read_labels(LABELS_PATH)
-    validate(MobileNet, frames, labels)
-    # measure_FPS(MobileNet, frames, labels)
+    models = [OpenCVDefaultHOGModel, MobileNet, YOLOv4, YOLOv4Tiny]
+    for model in models:
+        print(model.__name__)
+        validate(model, frames, labels)
+        measure_FPS(model, frames, labels)
