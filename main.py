@@ -7,7 +7,7 @@ import pafy as pafy
 from flask import Flask, Response
 from flask import render_template
 
-from src.model import MobileNet, YOLOv4, YOLOv4Tiny
+from src.model import MobileNet, YOLOv4, YOLOv4Tiny, OpenCVDefaultHOGModel
 from src.telegram import TelegramNotification
 
 youtube_url = os.environ.get(
@@ -28,8 +28,8 @@ if os.environ.get("MODEL") == "MobileNet":
     model = MobileNet()
 elif os.environ.get("MODEL") == "YOLOv4":
     model = YOLOv4()
-elif os.environ.get("MODEL") == "YOLOv4Tiny":
-    model = YOLOv4Tiny()
+elif os.environ.get("MODEL") == "HOG":
+    model = OpenCVDefaultHOGModel()
 else:
     model = YOLOv4Tiny()
 
