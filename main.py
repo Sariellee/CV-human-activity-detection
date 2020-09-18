@@ -19,6 +19,11 @@ best = video.getbest()
 stream_url = os.environ.get("STREAM_URL")
 video_capture = cv2.VideoCapture(stream_url or best.url)
 
+if os.environ.get('CAMERA_STREAM'):
+    video_capture = cv2.VideoCapture(0)
+else:
+    video_capture = cv2.VideoCapture(stream_url or best.url)
+
 app = Flask(__name__)
 
 outputFrame = None
